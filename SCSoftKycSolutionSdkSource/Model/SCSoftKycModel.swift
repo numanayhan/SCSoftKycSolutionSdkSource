@@ -26,5 +26,5 @@ public class SCSoftKycModel {
     public var base64_autoCropped_idBackImage : String?
     public var base64_autoCropped_selfieImage : String?
     
-    //public var nfcData : IDCardUtil?
+    public var nfcData : IDCardUtil?
 }

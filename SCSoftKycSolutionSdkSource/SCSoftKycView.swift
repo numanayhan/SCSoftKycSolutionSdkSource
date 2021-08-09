@@ -16,7 +16,7 @@ public enum ViewType {
     case jitsi
 }
 
-public protocol SCSoftKycViewDelegate: AnyObject {
+public protocol SCSoftKycViewDelegate: class {
     func didDetectSdkDataBeforeJitsi(_ kycView: SCSoftKycView, didDetect sdkModel: SCSoftKycModel)
     
     func didCaptureIdFrontPhoto(_ kycView : SCSoftKycView, image : UIImage , imageBase64 : String, cropImage : UIImage , cropImageBase64 : String)
@@ -35,6 +35,8 @@ public protocol SCSoftKycViewDelegate: AnyObject {
     func getNfcAvailable(_ kycView: SCSoftKycView, hasNfc : Bool)
     
     func didAgeControlOver18(status : Bool)
+    
+    func didReadMrz(_ kycView : SCSoftKycView, didRead mrzInfo : QKMRZScanResult)
 }
 
 @IBDesignable
@@ -1072,6 +1074,22 @@ extension SCSoftKycView{
         }
     }
     
+    /*fileprivate func add_removeFlipImageView(isAdd : Bool){
+        if isAdd {
+            flipImageView.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(flipImageView)
+            NSLayoutConstraint.activate([
+                flipImageView.centerXAnchor.constraint(equalTo: centerXAnchor),
+                flipImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+                flipImageView.widthAnchor.constraint(equalToConstant: 80),
+                flipImageView.heightAnchor.constraint(equalToConstant: 80)
+            ])
+        }
+        else{
+            flipImageView.removeFromSuperview()
+        }
+    }*/
+    
     fileprivate func add_removeCutoutSelfieView(isAdd : Bool){
         if isAdd {
             cutoutSelfieView.translatesAutoresizingMaskIntoConstraints = false
@@ -1164,6 +1182,11 @@ extension SCSoftKycView{
         nfcReadButton.isHidden = isHiddenNfcButton
         //nfcReadButton.layoutIfNeeded()
     }
+    
+    /*private func initiateFlipImageView() {
+        flipImageView.image = self.getMyImage(named: "flip_h")
+        flipImageView.alpha = 0
+    }*/
     
     private func initiateCloseButton() {
         if self.buttonCloseImage != nil {
@@ -1418,7 +1441,7 @@ extension SCSoftKycView{
                             self.capturedMrz = self.getUIImage(from: self.inputCIImage)
                             self.sdkModel.mrzImage = self.capturedMrz
                             
-
+                            self.delegate?.didReadMrz(self, didRead: self.sdkModel.mrzInfo!)
                             let currentDateTime = Calendar.current.startOfDay(for: Date())
                         
                             let bDate = Calendar.current.startOfDay(for: scanResult.birthDate!)
@@ -1594,8 +1617,8 @@ extension SCSoftKycView{
                 // All good, we got a passport
                 DispatchQueue.main.async {
                     idCardUtil.passport = passport
-                    
-                    //self.delegate?.didReadNfc(self, didRead: idCardUtil)
+                    self.sdkModel.nfcData = idCardUtil
+                    self.delegate?.didReadNfc(self, didRead: idCardUtil)
                     self.getNextViewType()
                 }
             } else {
