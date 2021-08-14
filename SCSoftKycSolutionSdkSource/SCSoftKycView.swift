@@ -27,7 +27,6 @@ public protocol SCSoftKycViewDelegate: class {
     
     func didCaptureIdFrontFacePhoto(_ kycView : SCSoftKycView, image : UIImage , imageBase64 : String)
     
-    //@available(iOS 13, *)
     func didReadNfc(_ kycView : SCSoftKycView , didRead nfcData : IDCardUtil)
     
     func didClose(_ kycView: SCSoftKycView, didDetect sdkModel: SCSoftKycModel)
@@ -37,6 +36,8 @@ public protocol SCSoftKycViewDelegate: class {
     func didAgeControlOver18(status : Bool)
     
     func didReadMrz(_ kycView : SCSoftKycView, didRead mrzInfo : QKMRZScanResult)
+    
+    func didJitsiLeave()
 }
 
 @IBDesignable
@@ -212,7 +213,6 @@ public class SCSoftKycView: UIView {
     fileprivate func initialize() {
         FilterVendor.registerFilters()
         //NFCReaderSession.readingAvailable
-        
         if NFCNDEFReaderSession.readingAvailable{
             hasNfc = true
         }
@@ -500,112 +500,6 @@ public class SCSoftKycView: UIView {
         videoPreviewLayer.frame = bounds
     }
     
-    public func getSelectedViewType() -> ViewType{
-        return selectedViewType
-    }
-    
-    public func approvedNextView(){
-        // for save data
-        getNextViewType()
-    }
-    
-    public func rejectedNextView(){
-        // for save data
-        if selectedViewType == .idFrontPhoto {
-            sdkModel.idFrontImage = nil
-            sdkModel.autoCropped_idFrontImage = nil
-            //checkFace = false
-            //checkRectangle = false
-        }
-        else if selectedViewType == .idBackPhoto {
-            sdkModel.idBackImage = nil
-            sdkModel.autoCropped_idBackImage = nil
-            sdkModel.mrzInfo = nil
-            //checkFace = false
-            //checkRectangle = false
-            //checkMrz = false
-        }
-        else if selectedViewType == .selfie {
-            sdkModel.selfieImage = nil
-            sdkModel.autoCropped_selfieImage = nil
-        }
-        DispatchQueue.main.async {
-            self.viewChange()
-        }
-    }
-    
-    public func showJitsiView(){
-        // for save data
-        delegate?.didDetectSdkDataBeforeJitsi(self, didDetect: sdkModel)
-    }
-    
-    public func showNfcView(){
-        selectedViewType = .nfcRead
-        DispatchQueue.main.async {
-            self.viewChange()
-        }
-    }
-    
-    public func showSelfieView(){
-        /*if inJitsi{
-         let seconds = 0.5
-         DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-         self.showSelfieView()
-         }
-         return
-         }*/
-        selectedViewType = .selfie
-        
-        if noCameraText.isEmpty{
-            captureSession.beginConfiguration()
-            if let inputs = captureSession.inputs as? [AVCaptureDeviceInput] {
-                for input in inputs {
-                    captureSession.removeInput(input)
-                }
-            }
-            if captureSession.inputs.isEmpty {
-                self.captureSession.addInput(frontInput)
-            }
-            
-            //deal with the connection again for portrait mode
-            videoDataOutput.connections.first?.videoOrientation = .portrait
-            //mirror the video stream for front camera
-            videoDataOutput.connections.first?.isVideoMirrored = true
-            //commit config
-            captureSession.commitConfiguration()
-        }
-        DispatchQueue.main.async {
-            self.viewChange()
-        }
-    }
-    
-    public func showIdPhotoView(){
-        //selectedViewType = .idFrontPhoto
-        
-        if noCameraText.isEmpty{
-            captureSession.beginConfiguration()
-            
-            if let inputs = captureSession.inputs as? [AVCaptureDeviceInput] {
-                for input in inputs {
-                    captureSession.removeInput(input)
-                }
-            }
-            if captureSession.inputs.isEmpty {
-                self.captureSession.addInput(backInput)
-            }
-            
-            //deal with the connection again for portrait mode
-            videoDataOutput.connections.first?.videoOrientation = .portrait
-            //mirror the video stream for front camera
-            videoDataOutput.connections.first?.isVideoMirrored = false
-            //commit config
-            captureSession.commitConfiguration()
-        }
-        DispatchQueue.main.async {
-            self.viewChange()
-        }
-    }
-    
     fileprivate func viewChange(){
         // REMOVE VIEW
         //idPhoto
@@ -670,10 +564,14 @@ public class SCSoftKycView: UIView {
         }
         
         if isFinish {
-            initiateInformationLabel(text: "Süreç tamamlanmıştır.")
-            initiateInformationNextButton(stateIsEnd: true)
-            add_removeInformationView(isAdd: true)
-            add_removeCloseButton(isAdd: true)
+            Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { timer in
+                self.delegate?.didClose(self, didDetect: self.sdkModel)
+            }
+            //initiateInformationLabel(text: "Süreç tamamlanmıştır.")
+            //initiateInformationNextButton(stateIsEnd: true)
+            //add_removeInformationView(isAdd: true)
+            //add_removeCloseButton(isAdd: true)
+            //closeButtonInput()
             return
         }
         
@@ -712,7 +610,6 @@ public class SCSoftKycView: UIView {
     }
     
     public func setJitsiWaitingState(){
-        selectedViewType = .jitsi
         DispatchQueue.main.async {
             self.viewChange()
         }
@@ -728,6 +625,23 @@ public class SCSoftKycView: UIView {
             add_removeJitsiView(isAdd: true)
             add_removeCloseButton(isAdd: true)
         }
+    }
+    
+    public func getSelectedViewType() -> ViewType{
+        return selectedViewType
+    }
+    
+    public func setSelectedViewType(viewType : ViewType){
+        selectedViewType = viewType
+    }
+    
+    public func approvedNextView(){
+        // for save data
+        getNextViewType()
+    }
+    
+    public func rejectedNextView(){
+        showViewType(viewType: selectedViewType)
     }
     
     private func getNextViewType(){
@@ -748,9 +662,9 @@ public class SCSoftKycView: UIView {
             }
             if tempValue?.next == nil {
                 isFinish = true
-                DispatchQueue.main.async {
+                //DispatchQueue.main.async {
                     self.viewChange()
-                }
+                //}
                 break
             }
             else{
@@ -763,8 +677,8 @@ public class SCSoftKycView: UIView {
     }
     
     private func showViewType(viewType : ViewType){
+        selectedViewType = viewType
         if viewType == .idFrontPhoto ||  viewType == .idBackPhoto{
-            selectedViewType = viewType
             showIdPhotoView()
         }
         else if viewType == .selfie {
@@ -778,10 +692,82 @@ public class SCSoftKycView: UIView {
         }
     }
     
+    public func showJitsiView(){
+        // for save data
+        delegate?.didDetectSdkDataBeforeJitsi(self, didDetect: sdkModel)
+    }
+    
+    public func showNfcView(){
+        DispatchQueue.main.async {
+            self.viewChange()
+        }
+    }
+    
+    public func showSelfieView(){
+        sdkModel.selfieImage = nil
+        sdkModel.autoCropped_selfieImage = nil
+        
+        if noCameraText.isEmpty{
+            captureSession.beginConfiguration()
+            if let inputs = captureSession.inputs as? [AVCaptureDeviceInput] {
+                for input in inputs {
+                    captureSession.removeInput(input)
+                }
+            }
+            if captureSession.inputs.isEmpty {
+                self.captureSession.addInput(frontInput)
+            }
+            
+            //deal with the connection again for portrait mode
+            videoDataOutput.connections.first?.videoOrientation = .portrait
+            //mirror the video stream for front camera
+            videoDataOutput.connections.first?.isVideoMirrored = true
+            //commit config
+            captureSession.commitConfiguration()
+        }
+        DispatchQueue.main.async {
+            self.viewChange()
+        }
+    }
+    
+    public func showIdPhotoView(){
+        if selectedViewType == .idFrontPhoto {
+            sdkModel.idFrontImage = nil
+            sdkModel.autoCropped_idFrontImage = nil
+        }
+        else if selectedViewType == .idBackPhoto {
+            sdkModel.idBackImage = nil
+            sdkModel.autoCropped_idBackImage = nil
+            sdkModel.mrzInfo = nil
+        }
+        
+        if noCameraText.isEmpty{
+            captureSession.beginConfiguration()
+            
+            if let inputs = captureSession.inputs as? [AVCaptureDeviceInput] {
+                for input in inputs {
+                    captureSession.removeInput(input)
+                }
+            }
+            if captureSession.inputs.isEmpty {
+                self.captureSession.addInput(backInput)
+            }
+            
+            //deal with the connection again for portrait mode
+            videoDataOutput.connections.first?.videoOrientation = .portrait
+            //mirror the video stream for front camera
+            videoDataOutput.connections.first?.isVideoMirrored = false
+            //commit config
+            captureSession.commitConfiguration()
+        }
+        DispatchQueue.main.async {
+            self.viewChange()
+        }
+    }
+    
     @objc private func closeButtonInput(){
         if selectedViewType == .jitsi {
-            jitsiMeetView.leave()
-            jitsiMeetView.removeFromSuperview()
+            leaveJitsi()
         }
         refreshTimer?.invalidate()
         self.delegate?.didClose(self, didDetect: sdkModel)
@@ -1204,6 +1190,7 @@ extension SCSoftKycView{
     
     private func initiateStatement() {
         idPhotoLabel.numberOfLines = 0
+        idPhotoLabel.isHidden = isHiddenIdPhotoInfo
     }
     
     private func initiateFlashButton(){
@@ -1719,20 +1706,22 @@ extension SCSoftKycView: JitsiMeetViewDelegate {
     
     public func conferenceTerminated(_ data: [AnyHashable : Any]!) {
         print("conferenceTerminated")
-        DispatchQueue.main.async {
-            self.cleanUp()
-        }
+        //DispatchQueue.main.async {
+            self.leaveJitsi()
+        //}
         inJitsi = false
     }
     
     public func participantLeft(_ data: [AnyHashable : Any]!) {
         print("participantLeft")
-        cleanUp()
+        leaveJitsi()
     }
     
-    fileprivate func cleanUp() {
+    fileprivate func leaveJitsi() {
         jitsiMeetView.leave()
         jitsiMeetView.removeFromSuperview()
+        self.delegate?.didJitsiLeave()
+        
     }
     
     public func conferenceWillJoin(_ data: [AnyHashable : Any]!) {
