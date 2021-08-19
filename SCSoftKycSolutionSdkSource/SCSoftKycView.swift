@@ -122,6 +122,7 @@ public class SCSoftKycView: UIView {
     private let flashButton = ToggleButton()
     private var nfcReadLabel = StatementLabel()
     private var jitsiLabel = StatementLabel()
+    private var mrzAreaLabel = UILabel()
     private let jitsiButton = UIButton()
     private var informationLabel = StatementLabel()
     private let nfcReadButton = UIButton()
@@ -267,7 +268,7 @@ public class SCSoftKycView: UIView {
     }
     
     private func initiateScreen(){
-        DispatchQueue.main.async {
+        //DispatchQueue.main.async {
             self.initiateStatement()
             self.initiateFlashButton()
             self.initiateTakePhotoButton()
@@ -280,7 +281,13 @@ public class SCSoftKycView: UIView {
             self.initiateJitsiButton()
             self.viewChange()
             self.delegate?.getNfcAvailable(self, hasNfc: self.hasNfc)
+         
+        
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { timer in
+            self.initiateMrzArea()
         }
+            
+        //}
     }
     
     private func updateScanArea() {
@@ -292,7 +299,8 @@ public class SCSoftKycView: UIView {
             }
             
             DispatchQueue.main.async {
-                (self.cutoutView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor = (found) ? self.activeColor.cgColor : self.passiveColor.cgColor
+                let selectedColor = (found) ? self.activeColor.cgColor : self.passiveColor.cgColor
+                (self.cutoutView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor = selectedColor
                 self.cutoutView.layoutIfNeeded()
                 
                
@@ -305,6 +313,10 @@ public class SCSoftKycView: UIView {
                     self.takePhotoButton.setBackgroundImage(self.getMyImage(named: btnImage), for: .normal)
                 }
                 self.takePhotoButton.isEnabled = found
+                
+                if self.selectedViewType == .idBackPhoto{
+                    self.mrzAreaLabel.textColor = UIColor(cgColor: selectedColor)
+                }
             }
         }
         else if selectedViewType == .selfie{
@@ -503,6 +515,7 @@ public class SCSoftKycView: UIView {
     fileprivate func viewChange(){
         // REMOVE VIEW
         //idPhoto
+        mrzAreaLabel.removeFromSuperview()
         add_removeInformationView(isAdd: false)
         //add_removeFlipImageView(isAdd: false)
         add_removeCloseButton(isAdd: false)
@@ -592,6 +605,7 @@ public class SCSoftKycView: UIView {
             }
             else {
                 idPhotoLabel.shape(infoIdBackText, font: labelFont)
+                addSubview(mrzAreaLabel)
             }
             idPhotoLabel.textColor = labelTextColor
             //add_removeFlipImageView(isAdd: true)
@@ -731,14 +745,22 @@ public class SCSoftKycView: UIView {
     }
     
     public func showIdPhotoView(){
+        captureImageStatus = 0
         if selectedViewType == .idFrontPhoto {
             sdkModel.idFrontImage = nil
             sdkModel.autoCropped_idFrontImage = nil
+            sdkModel.base64_autoCropped_idFrontImage = nil
+            sdkModel.base64_idFrontImage = nil
+            sdkModel.idFrontFaceImage = nil
+            sdkModel.base64_idFrontFaceImage = nil
         }
         else if selectedViewType == .idBackPhoto {
             sdkModel.idBackImage = nil
+            sdkModel.base64_idBackImage = nil
             sdkModel.autoCropped_idBackImage = nil
+            sdkModel.base64_autoCropped_idBackImage = nil
             sdkModel.mrzInfo = nil
+            checkMrz = false
         }
         
         if noCameraText.isEmpty{
@@ -1139,6 +1161,41 @@ extension SCSoftKycView{
         //jitsiButton.layoutIfNeeded()
     }
     
+    fileprivate func initiateMrzArea() {
+        mrzAreaLabel.numberOfLines = 3
+        var text = "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+        mrzAreaLabel.textColor = labelTextColor
+        mrzAreaLabel.text = text
+        mrzAreaLabel.isHidden = false
+        let customfont = UIFont.boldSystemFont(ofSize: 18)
+        mrzAreaLabel.font = customfont
+        mrzAreaLabel.lineBreakMode = .byCharWrapping
+        
+        if cutoutRect != nil {
+            let width = cutoutRect!.width - 20
+            let height = cutoutRect?.height
+            
+            let heightLabel = heightForView(text: text, font: customfont, width: width)
+            
+            let x = (cutoutRect?.origin.x)! + 10
+            let y = (cutoutRect?.origin.y)! + height! - heightLabel-10
+
+            mrzAreaLabel.frame = CGRect(x: x, y: y, width: width, height: heightLabel)
+        }
+    }//
+    
+    func heightForView(text:String, font:UIFont, width:CGFloat) -> CGFloat {
+        let label:UILabel = UILabel(frame: CGRect(x: 0, y: 0, width: width, height: CGFloat.greatestFiniteMagnitude))
+        label.numberOfLines = 3
+        label.lineBreakMode = NSLineBreakMode.byWordWrapping
+        label.font = font
+        label.text = text
+
+        label.sizeToFit()
+        return label.frame.height
+    }
+
+    
     fileprivate func initiateNfcReadLabel(forceText : String) {
         nfcReadLabel.numberOfLines = 0
         var text = infoNfcText
@@ -1362,16 +1419,21 @@ extension SCSoftKycView{
                 if self.captureImageStatus == 1 {
                     self.sdkModel.autoCropped_idFrontImage = UIImage(cgImage: cgImage!)
                     self.sdkModel.base64_autoCropped_idFrontImage = self.sdkModel.autoCropped_idFrontImage?.toBase64(format: .png)
-                    self.delegate?.didCaptureIdFrontPhoto(self, image: self.sdkModel.idFrontImage!, imageBase64: self.sdkModel.base64_idFrontImage!, cropImage: self.sdkModel.autoCropped_idFrontImage!, cropImageBase64: self.sdkModel.base64_autoCropped_idFrontImage!)
-                    
                     self.sdkModel.idFrontFaceImage = self.capturedFace
                     self.sdkModel.base64_idFrontFaceImage = self.sdkModel.idFrontFaceImage?.toBase64(format: .png)
-                    self.delegate?.didCaptureIdFrontFacePhoto(self, image: self.sdkModel.idFrontFaceImage!, imageBase64: self.sdkModel.base64_idFrontFaceImage!)
+                    
+                    Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { timer in
+                        self.delegate?.didCaptureIdFrontPhoto(self, image: self.sdkModel.idFrontImage!, imageBase64: self.sdkModel.base64_idFrontImage!, cropImage: self.sdkModel.autoCropped_idFrontImage!, cropImageBase64: self.sdkModel.base64_autoCropped_idFrontImage!)
+                        self.delegate?.didCaptureIdFrontFacePhoto(self, image: self.sdkModel.idFrontFaceImage!, imageBase64: self.sdkModel.base64_idFrontFaceImage!)
+                    }
                     
                 }else if self.captureImageStatus == 2 {
                     self.sdkModel.autoCropped_idBackImage = UIImage(cgImage: cgImage!)
                     self.sdkModel.base64_autoCropped_idBackImage = self.sdkModel.autoCropped_idBackImage?.toBase64(format: .png)
-                    self.delegate?.didCaptureIdBackPhoto(self, image: self.sdkModel.idBackImage!, imageBase64: self.sdkModel.base64_idBackImage!, cropImage: self.sdkModel.autoCropped_idBackImage!, cropImageBase64: self.sdkModel.base64_autoCropped_idBackImage!)
+                    
+                    Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { timer in
+                        self.delegate?.didCaptureIdBackPhoto(self, image: self.sdkModel.idBackImage!, imageBase64: self.sdkModel.base64_idBackImage!, cropImage: self.sdkModel.autoCropped_idBackImage!, cropImageBase64: self.sdkModel.base64_autoCropped_idBackImage!)
+                    }
                 }
             }
         }
