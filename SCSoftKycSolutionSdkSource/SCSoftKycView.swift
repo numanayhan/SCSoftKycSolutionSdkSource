@@ -56,6 +56,12 @@ public class SCSoftKycView: UIView {
     public var labelTextColor = UIColor.white
     public var labelFont = UIFont.boldSystemFont(ofSize: 16)
     
+    public var nfcRequestText = "IPhone'unuzu NFC özellikli bir Kimlik Kartının yakınında tutun."
+    public var nfcSuccessfulText = "Kimlik Kartı Başarıyla okundu."
+    public var nfcReadingDataGroupText = "Yükleniyor lütfen bekleyiniz...\n"
+    public var nfcAuthenticatingWithPassportText = "Kimlik kartı doğrulama.....\n"
+    
+    public var nfcErrorText = "Kimlik bilgileri okunurken hata oluştu. Lütfen kimlik kartınızı telefonunuza yaklaştırarak tekrar deneyiniz."
     public var infoIdFrontText = "Kimlik kartınızın ön yüzünü belirtilen kare içerisine alarak fotoğraf çekme butonuna basınız."
     public var infoIdBackText = "Kimlik kartınızın arka yüzünü belirtilen kare içerisine alarak fotoğraf çekme butonuna basınız."
     public var infoNfcText = "Kimlik kartınızı telefonun arka üst kısmına yaklaştırın ve Tara butonuna basın."
@@ -283,7 +289,7 @@ public class SCSoftKycView: UIView {
             self.delegate?.getNfcAvailable(self, hasNfc: self.hasNfc)
          
         
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { timer in
+        Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { timer in
             self.initiateMrzArea()
         }
             
@@ -869,7 +875,7 @@ public class SCSoftKycView: UIView {
         return
     }
     
-    @objc private func nfcReadInput(){
+    @objc public func nfcReadInput(){
         if !hasNfc {
             getNextViewType()
             return
@@ -1422,7 +1428,7 @@ extension SCSoftKycView{
                     self.sdkModel.idFrontFaceImage = self.capturedFace
                     self.sdkModel.base64_idFrontFaceImage = self.sdkModel.idFrontFaceImage?.toBase64(format: .png)
                     
-                    Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { timer in
+                    Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { timer in
                         self.delegate?.didCaptureIdFrontPhoto(self, image: self.sdkModel.idFrontImage!, imageBase64: self.sdkModel.base64_idFrontImage!, cropImage: self.sdkModel.autoCropped_idFrontImage!, cropImageBase64: self.sdkModel.base64_autoCropped_idFrontImage!)
                         self.delegate?.didCaptureIdFrontFacePhoto(self, image: self.sdkModel.idFrontFaceImage!, imageBase64: self.sdkModel.base64_idFrontFaceImage!)
                     }
@@ -1431,7 +1437,7 @@ extension SCSoftKycView{
                     self.sdkModel.autoCropped_idBackImage = UIImage(cgImage: cgImage!)
                     self.sdkModel.base64_autoCropped_idBackImage = self.sdkModel.autoCropped_idBackImage?.toBase64(format: .png)
                     
-                    Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { timer in
+                    Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { timer in
                         self.delegate?.didCaptureIdBackPhoto(self, image: self.sdkModel.idBackImage!, imageBase64: self.sdkModel.base64_idBackImage!, cropImage: self.sdkModel.autoCropped_idBackImage!, cropImageBase64: self.sdkModel.base64_autoCropped_idBackImage!)
                     }
                 }
@@ -1626,40 +1632,40 @@ extension SCSoftKycView{
         idCardReader.readPassport(mrzKey: mrzKey, customDisplayMessage: { (displayMessage) in
             switch displayMessage {
             case .requestPresentPassport:
-                return "IPhone'unuzu NFC özellikli bir Kimlik Kartının yakınında tutun."
+                return self.nfcRequestText
             case .successfulRead:
-                return "Kimlik Kartı Başarıyla okundu."
+                return self.nfcSuccessfulText
             case .readingDataGroupProgress( _, let progress):
                 let progressString = self.handleProgress(percentualProgress: progress)
-                return "Yükleniyor lütfen bekleyiniz...\n\(progressString)"
+                return self.nfcReadingDataGroupText + progressString
             case .authenticatingWithPassport(let progress):
                 let progressString = self.handleProgress(percentualProgress: progress)
-                return "Kimlik kartı doğrulama.....\n\n\(progressString)"
+                return self.nfcAuthenticatingWithPassportText + progressString
             case .error(let tagError):
                 self.nfcErrorCount += 1
                 
                 switch tagError {
                 case .TagNotValid:
-                    return "TagNotValid"
+                    return self.nfcErrorText//"TagNotValid"
                 case .MoreThanOneTagFound:
-                    return "TagNotValid"
+                    return self.nfcErrorText//"TagNotValid"
                 case .ConnectionError:
-                    return "ConnectionError"
+                    return self.nfcErrorText//"ConnectionError"
                 case .InvalidMRZKey:
-                    return "MRZ bilgisi geçersiz.Tekrar kimliğin arka yüzünü okutunuz."
+                    return self.nfcErrorText//"MRZ bilgisi geçersiz.Tekrar kimliğin arka yüzünü okutunuz."
                 case .ResponseError(_, _, _):
-                    return "ResponseError"
+                    return self.nfcErrorText//"ResponseError"
                 case .UserCanceled:
                     self.nfcCancel = true
-                    return ""
+                    return self.nfcErrorText//""
                 case .UnexpectedError:
                     self.nfcCancel = true
-                    return ""
+                    return self.nfcErrorText//""
                 default:
-                    return "Beklenmeyen bir hata oluşmuştur."
+                    return self.nfcErrorText//"Beklenmeyen bir hata oluşmuştur."
                 }
             @unknown default:
-                return "Beklenmeyen bir hata oluşmuştur."
+                return self.nfcErrorText//"Beklenmeyen bir hata oluşmuştur."
             }
         }, completed: { (passport, error) in
             if let passport = passport {
