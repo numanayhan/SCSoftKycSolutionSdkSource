@@ -61,6 +61,7 @@ public class SCSoftKycView: UIView {
     public var nfcReadingDataGroupText = "Yükleniyor lütfen bekleyiniz...\n"
     public var nfcAuthenticatingWithPassportText = "Kimlik kartı doğrulama.....\n"
     
+    public var noMrzDataText = "Kimlik mrz bilgisi bulunamamıştır. Nfc okuması yapılabilmesi için öncelikle kimlik bilgilerinin sistem tarafından kaydedilmesi gerekmektedir."
     public var nfcErrorText = "Kimlik bilgileri okunurken hata oluştu. Lütfen kimlik kartınızı telefonunuza yaklaştırarak tekrar deneyiniz."
     public var infoIdFrontText = "Kimlik kartınızın ön yüzünü belirtilen kare içerisine alarak fotoğraf çekme butonuna basınız."
     public var infoIdBackText = "Kimlik kartınızın arka yüzünü belirtilen kare içerisine alarak fotoğraf çekme butonuna basınız."
@@ -217,7 +218,7 @@ public class SCSoftKycView: UIView {
     }
     
     // MARK: Init methods
-    fileprivate func initialize() {
+    public func initialize() {
         FilterVendor.registerFilters()
         //NFCReaderSession.readingAvailable
         if NFCNDEFReaderSession.readingAvailable{
@@ -357,8 +358,12 @@ public class SCSoftKycView: UIView {
         let imageWidth = CGFloat(cgImage.width)
         let imageHeight = CGFloat(cgImage.height)
         let rect = videoPreviewLayer.metadataOutputRectConverted(fromLayerRect: cutoutRect!)
-        let videoOrientation = videoPreviewLayer.connection!.videoOrientation
         
+        if videoPreviewLayer.connection == nil {
+            return CGRect(x: (rect.minY * imageWidth), y: (rect.minX * imageHeight), width: (rect.height * imageWidth), height: (rect.width * imageHeight))
+        }
+        
+        let videoOrientation = videoPreviewLayer.connection!.videoOrientation
         if videoOrientation == .portrait || videoOrientation == .portraitUpsideDown {
             return CGRect(x: (rect.minY * imageWidth), y: (rect.minX * imageHeight), width: (rect.height * imageWidth), height: (rect.width * imageHeight))
         }
@@ -389,6 +394,10 @@ public class SCSoftKycView: UIView {
         let imageWidth = CGFloat(cgImage.width)
         let imageHeight = CGFloat(cgImage.height)
         let rect = videoPreviewLayer.metadataOutputRectConverted(fromLayerRect: cutoutSelfieRect!)
+        
+        if videoPreviewLayer.connection == nil {
+            return CGRect(x: (rect.minY * imageWidth), y: (rect.minX * imageHeight), width: (rect.height * imageWidth), height: (rect.width * imageHeight))
+        }
         let videoOrientation = videoPreviewLayer.connection!.videoOrientation
         
         if videoOrientation == .portrait || videoOrientation == .portraitUpsideDown {
@@ -899,7 +908,7 @@ public class SCSoftKycView: UIView {
                 }
             }
         }else {
-            initiateNfcReadLabel(forceText: "Kimlik mrz bilgisi bulunamamıştır. Nfc okuması yapılabilmesi için öncelikle kimlik bilgilerinin sistem tarafından kaydedilmesi gerekmektedir.")
+            initiateNfcReadLabel(forceText: noMrzDataText)
         }
     }
 }
@@ -1169,7 +1178,7 @@ extension SCSoftKycView{
     
     fileprivate func initiateMrzArea() {
         mrzAreaLabel.numberOfLines = 3
-        var text = "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+        let text = "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
         mrzAreaLabel.textColor = labelTextColor
         mrzAreaLabel.text = text
         mrzAreaLabel.isHidden = false

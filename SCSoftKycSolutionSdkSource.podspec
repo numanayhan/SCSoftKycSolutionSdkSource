@@ -1,14 +1,14 @@
 Pod::Spec.new do |spec|
 
   spec.name         = "SCSoftKycSolutionSdkSource"
-  spec.version      = "0.0.6"
+  spec.version      = "0.0.7"
   spec.summary      = "SCSoftKycSolutionSdkSource summary"
 
   spec.homepage     = "https://github.com/samiozakyol/SCSoftKycSolutionSdkSource"
   spec.license      = "MIT"
   spec.author       = { "Sami Ozakyol" => "samiozakyol@gmail.com" }
-  spec.platform 	   = :ios,'13.0'
-
+  spec.platform 	   = :ios
+  spec.ios.deployment_target = "12.0"
   spec.source       = { :git => 'https://github.com/samiozakyol/SCSoftKycSolutionSdkSource.git', :tag => spec.version }
   
   spec.source_files = "SCSoftKycSolutionSdkSource/**/*.{swift}"
