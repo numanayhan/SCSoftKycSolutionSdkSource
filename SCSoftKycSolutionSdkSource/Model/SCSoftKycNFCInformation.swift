@@ -2,10 +2,10 @@ import Foundation
 
 public class SCSoftKycNFCInformation: Codable {
     
-    var docType: Int?
-    var personDetails:SCSoftKycPersonDetails?
-    var additionalPersonDetails:SCSoftKycAdditionalPersonDetails?
-    var mrzText : String?
+    public var docType: Int?
+    public var personDetails:SCSoftKycPersonDetails?
+    public var additionalPersonDetails:SCSoftKycAdditionalPersonDetails?
+    public var mrzText : String?
     
     public init(){
         self.docType = -1

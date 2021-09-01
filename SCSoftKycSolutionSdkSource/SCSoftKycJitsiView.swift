@@ -106,7 +106,7 @@ extension SCSoftKycJitsiView{
     }
     
     public func getMyImage(named : String) -> UIImage? {
-        let bundle = Bundle(for: SCSoftKycNfcView.self)
+        let bundle = Bundle(for: SCSoftKycJitsiView.self)
         return UIImage(named: named, in: bundle, compatibleWith: nil)
     }
 }

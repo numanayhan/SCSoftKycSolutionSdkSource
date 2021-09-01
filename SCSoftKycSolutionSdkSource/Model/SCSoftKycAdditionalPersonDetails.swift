@@ -1,21 +1,21 @@
 import Foundation
 
 public class SCSoftKycAdditionalPersonDetails: Codable {
-    var custodyInformation:String?
-    var fullDateOfBirth:String?
-    var nameOfHolder:String?
-    var otherNames:[String]?
-    var otherValidTDNumbers:[String]?
-    var permanentAddress:[String]?
-    var personalNumber:String?
-    var personalSummary:String?
-    var placeOfBirth:[String]?
-    var profession:String?
-    var proofOfCitizenship:String?
-    var tag:String?
-    var tagPresenceList:[String]?
-    var telephone:String?
-    var title:String?
+    public var custodyInformation:String?
+    public var fullDateOfBirth:String?
+    public var nameOfHolder:String?
+    public var otherNames:[String]?
+    public var otherValidTDNumbers:[String]?
+    public var permanentAddress:[String]?
+    public var personalNumber:String?
+    public var personalSummary:String?
+    public var placeOfBirth:[String]?
+    public var profession:String?
+    public var proofOfCitizenship:String?
+    public var tag:String?
+    public var tagPresenceList:[String]?
+    public var telephone:String?
+    public var title:String?
     
     public init(){
         self.custodyInformation = ""

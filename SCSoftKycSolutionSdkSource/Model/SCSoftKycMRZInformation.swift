@@ -2,17 +2,17 @@ import Foundation
 
 public class SCSoftKycMRZInformation: Codable {
     
-    var documentNumber: String?
-    var expiryDate:String?
-    var birthDate:String?
-    var documentType:String?
-    var countryCode:String?
-    var surnames:String?
-    var givenNames:String?
-    var nationality:String?
-    var gender:String?
-    var personalNumber:String?
-    var personalNumber2:String?
+    public var documentNumber: String?
+    public var expiryDate:String?
+    public var birthDate:String?
+    public var documentType:String?
+    public var countryCode:String?
+    public var surnames:String?
+    public var givenNames:String?
+    public var nationality:String?
+    public var gender:String?
+    public var personalNumber:String?
+    public var personalNumber2:String?
     
     public init(){
         self.documentNumber = ""

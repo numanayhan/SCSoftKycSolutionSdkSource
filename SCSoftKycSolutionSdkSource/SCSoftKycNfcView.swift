@@ -3,6 +3,7 @@ import UIKit
 import CoreNFC
 import NFCPassportReader
 
+@available(iOS 13, *)
 public protocol SCSoftKycNfcViewDelegate: AnyObject {
     
     func didReadNfc(_ kycNfcView : SCSoftKycNfcView , didRead nfcInformation : SCSoftKycNFCInformation)
@@ -152,6 +153,7 @@ public class SCSoftKycNfcView: UIView {
     
 }
 
+@available(iOS 13, *)
 extension SCSoftKycNfcView{
     
     fileprivate func add_removeNfcViews(isAdd : Bool){

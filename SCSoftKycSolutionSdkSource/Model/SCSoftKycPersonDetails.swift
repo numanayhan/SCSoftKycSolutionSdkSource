@@ -1,19 +1,19 @@
 import Foundation
 
 public class SCSoftKycPersonDetails: Codable {
-    var name:String?
-    var surname:String?
-    var personalNumber:String?
-    var gender:String?
-    var birthDate:String?
-    var expiryDate:String?
-    var serialNumber:String?
-    var nationality:String?
-    var issuerAuthority:String?
-    var faceImageBase64:String?
-    var portraitImageBase64:String?
-    var signatureBase64:String?
-    var fingerPrints:[String]?
+    public var name:String?
+    public var surname:String?
+    public var personalNumber:String?
+    public var gender:String?
+    public var birthDate:String?
+    public var expiryDate:String?
+    public var serialNumber:String?
+    public var nationality:String?
+    public var issuerAuthority:String?
+    public var faceImageBase64:String?
+    public var portraitImageBase64:String?
+    public var signatureBase64:String?
+    public var fingerPrints:[String]?
     
     
     public init(){
