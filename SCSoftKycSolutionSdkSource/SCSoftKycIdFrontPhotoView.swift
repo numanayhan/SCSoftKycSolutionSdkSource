@@ -3,7 +3,7 @@ import UIKit
 import AVFoundation
 import Vision
 
-public protocol SCSoftKycIdFrontPhotoViewDelegate: class {
+public protocol SCSoftKycIdFrontPhotoViewDelegate: AnyObject {
     
     func didCaptureIdFrontPhoto(_ kycView : SCSoftKycIdFrontPhotoView, image : UIImage , imageBase64 : String, cropImage : UIImage , cropImageBase64 : String)
     
@@ -40,7 +40,7 @@ public class SCSoftKycIdFrontPhotoView: UIView {
     public var isHiddenIdPhotoInfo = false
     public var isHiddenIdPhotoCameraButton = false
     public var isHiddenIdPhotoFlashButton = false
-    public var isHiddenCloseButton = false
+    public var isHiddenCloseButton = true
     
     public weak var delegate: SCSoftKycIdFrontPhotoViewDelegate?
     
@@ -207,7 +207,7 @@ public class SCSoftKycIdFrontPhotoView: UIView {
     }
     
     public func getMyImage(named : String) -> UIImage? {
-        let bundle = Bundle(for: SCSoftKycView.self)
+        let bundle = Bundle(for: SCSoftKycIdFrontPhotoView.self)
         return UIImage(named: named, in: bundle, compatibleWith: nil)
     }
     
@@ -380,37 +380,13 @@ public class SCSoftKycIdFrontPhotoView: UIView {
         add_removeCloseButton(isAdd: true)
     }
     
-    public func showIdPhotoView(){
+    public func refreshData(){
         sdkModel.idFrontImage = nil
         sdkModel.autoCropped_idFrontImage = nil
         sdkModel.base64_autoCropped_idFrontImage = nil
         sdkModel.base64_idFrontImage = nil
         sdkModel.idFrontFaceImage = nil
         sdkModel.base64_idFrontFaceImage = nil
-        
-        
-        if noCameraText.isEmpty{
-            captureSession.beginConfiguration()
-            
-            if let inputs = captureSession.inputs as? [AVCaptureDeviceInput] {
-                for input in inputs {
-                    captureSession.removeInput(input)
-                }
-            }
-            if captureSession.inputs.isEmpty {
-                self.captureSession.addInput(backInput)
-            }
-            
-            //deal with the connection again for portrait mode
-            videoDataOutput.connections.first?.videoOrientation = .portrait
-            //mirror the video stream for front camera
-            videoDataOutput.connections.first?.isVideoMirrored = false
-            //commit config
-            captureSession.commitConfiguration()
-        }
-        DispatchQueue.main.async {
-            self.viewChange()
-        }
     }
     
     @objc private func closeButtonInput(){

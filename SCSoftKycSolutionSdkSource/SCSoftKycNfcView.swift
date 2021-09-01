@@ -3,9 +3,9 @@ import UIKit
 import CoreNFC
 import NFCPassportReader
 
-public protocol SCSoftKycNfcViewDelegate: class {
+public protocol SCSoftKycNfcViewDelegate: AnyObject {
     
-    func didReadNfc(_ kycNfcView : SCSoftKycNfcView , didRead nfcData : IDCardUtil)
+    func didReadNfc(_ kycNfcView : SCSoftKycNfcView , didRead nfcInformation : SCSoftKycNFCInformation)
     
     func didClose(_ kycNfcView: SCSoftKycNfcView)
     
@@ -35,13 +35,13 @@ public class SCSoftKycNfcView: UIView {
     public var noMrzDataText = "Kimlik mrz bilgisi bulunamamıştır veya hatalı gönderilmiştir."
     public var nfcErrorText = "Kimlik bilgileri okunurken hata oluştu. Lütfen kimlik kartınızı telefonunuza yaklaştırarak tekrar deneyiniz."
     public var infoNfcText = "Kimlik kartınızı telefonun arka üst kısmına yaklaştırın ve Tara butonuna basın."
-    public var infoNoNfcText = "Cihazınızda Nfc desteği bulunmamaktadır. Devam butonuna basarak sürece devam edebilirsiniz."
+    public var infoNoNfcText = "Cihazınızda Nfc desteği bulunmamaktadır."
     public var buttonNfcText = "Tara"
-    public var buttonNoNfcText = "Devam"
+    public var buttonNoNfcText = "Çıkış"
     
     public var buttonCloseImage : UIImage?
     
-    public var isHiddenCloseButton = false
+    public var isHiddenCloseButton = true
     public var isHiddenNfcInfo = false
     public var isHiddenNfcButton = false
     
@@ -96,6 +96,10 @@ public class SCSoftKycNfcView: UIView {
     }
     
     public func initiateScreen(documentNumber: String , birthDate: String, expiryDate : String){
+        self.documentNumber = documentNumber
+        self.birthDate = birthDate
+        self.expiryDate = expiryDate
+        
         self.initiateNfcReadLabel(forceText: "")
         self.initiateNfcReadButton()
         self.initiateCloseButton()
@@ -309,7 +313,7 @@ extension SCSoftKycNfcView{
                 // All good, we got a passport
                 DispatchQueue.main.async {
                     idCardUtil.passport = passport
-                    self.delegate?.didReadNfc(self, didRead: idCardUtil)
+                    self.delegate?.didReadNfc(self, didRead: self.setIDCard(idCardUtil))
                 }
             } else {
                 //if error?.localizedDescription == .UserCanceled.localizedDescription || error?.localizedDescription == .UnexpectedError.localizedDescription {
@@ -364,4 +368,78 @@ extension SCSoftKycNfcView{
         return result
     }
     
+    func setIDCard(_ idCardUtil:IDCardUtil) -> SCSoftKycNFCInformation{
+        let nfcInformation = SCSoftKycNFCInformation()
+        
+        nfcInformation.mrzText = idCardUtil.getMRZKey()
+        nfcInformation.docType = 1
+        nfcInformation.personDetails?.name = idCardUtil.passport?.firstName
+        nfcInformation.personDetails?.surname = idCardUtil.passport?.lastName
+        nfcInformation.personDetails?.personalNumber = idCardUtil.passport?.personalNumber
+        var gender = "N/A"
+        if idCardUtil.passport?.gender == "F" {
+            gender = "FEMALE"
+        } else if idCardUtil.passport?.gender == "M" {
+            gender = "MALE"
+        }
+        nfcInformation.personDetails?.gender = gender
+        nfcInformation.personDetails?.birthDate = idCardUtil.passport?.dateOfBirth ?? ""
+        nfcInformation.personDetails?.expiryDate = idCardUtil.passport?.documentExpiryDate ?? ""
+        nfcInformation.personDetails?.serialNumber = idCardUtil.passport?.documentNumber
+        nfcInformation.personDetails?.nationality = idCardUtil.passport?.nationality
+        nfcInformation.personDetails?.issuerAuthority = idCardUtil.passport?.issuingAuthority
+        
+        let faceImage = idCardUtil.passport?.passportImage
+        if faceImage != nil {
+            nfcInformation.personDetails?.faceImageBase64 = faceImage!.toBase64(format: .jpeg(100)) ?? ""
+            nfcInformation.personDetails?.portraitImageBase64 = faceImage!.toBase64(format: .jpeg(100)) ?? ""
+        }
+        
+        let signatureImage = idCardUtil.passport?.signatureImage
+        if signatureImage != nil {
+            nfcInformation.personDetails?.signatureBase64  = signatureImage!.toBase64(format: .jpeg(100)) ?? ""
+        }
+        
+        nfcInformation.personDetails?.fingerPrints = ["",""]
+        
+        //AdditionalPersonDetails
+        var placeofBirth : [String] = []
+        
+        var permanetAddress : [String] = []
+        
+        let dg11 = idCardUtil.passport?.getDataGroup(.DG11) as? DataGroup11
+        let placeBirth = dg11?.placeOfBirth ?? ""
+        placeofBirth.append(placeBirth)
+        let resAddress = dg11?.address ?? ""
+        permanetAddress.append(resAddress)
+        let phone = dg11?.telephone ?? ""
+        let fullName = dg11?.fullName ?? ""
+        let custodyInfo = dg11?.custodyInfo ?? ""
+        let fulldateOfBirth = idCardUtil.passport?.dateOfBirth ?? ""
+        let title = dg11?.title ?? ""
+        let profession = dg11?.profession ?? ""
+        let proofOfCitizenship = dg11?.proofOfCitizenship ?? ""
+        let personalNumber = dg11?.personalNumber ?? ""
+        let personalSummary = dg11?.personalSummary ?? ""
+        let tdNumber = dg11?.tdNumbers ?? ""
+        var tdNumbers : [String] = []
+        tdNumbers.append(tdNumber)
+        
+        nfcInformation.additionalPersonDetails?.telephone = phone
+        nfcInformation.additionalPersonDetails?.permanentAddress = permanetAddress
+        nfcInformation.additionalPersonDetails?.placeOfBirth = placeofBirth
+        nfcInformation.additionalPersonDetails?.custodyInformation = custodyInfo
+        nfcInformation.additionalPersonDetails?.fullDateOfBirth = fulldateOfBirth
+        nfcInformation.additionalPersonDetails?.nameOfHolder = fullName
+        nfcInformation.additionalPersonDetails?.proofOfCitizenship = proofOfCitizenship
+        nfcInformation.additionalPersonDetails?.profession = profession
+        nfcInformation.additionalPersonDetails?.proofOfCitizenship = proofOfCitizenship
+        nfcInformation.additionalPersonDetails?.personalNumber = personalNumber
+        nfcInformation.additionalPersonDetails?.personalSummary = personalSummary
+        nfcInformation.additionalPersonDetails?.otherValidTDNumbers = tdNumbers
+        nfcInformation.additionalPersonDetails?.title = title
+        
+        return nfcInformation
+        
+    }
 }

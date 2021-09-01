@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 import JitsiMeetSDK
 
-public protocol SCSoftKycJitsiViewDelegate: class {
+public protocol SCSoftKycJitsiViewDelegate: AnyObject {
     
     func didClose(_ kycView: SCSoftKycJitsiView)
     func didJitsiLeave()
@@ -14,7 +14,7 @@ public class SCSoftKycJitsiView: UIView {
     // Public variables
     
     public var buttonCloseImage : UIImage?
-    public var isHiddenCloseButton = false
+    public var isHiddenCloseButton = true
     
     public weak var delegate: SCSoftKycJitsiViewDelegate?
     private let closeButton = UIButton()
@@ -128,11 +128,13 @@ extension SCSoftKycJitsiView: JitsiMeetViewDelegate {
         leaveJitsi()
     }
     
-    fileprivate func leaveJitsi() {
+    public func leaveJitsi() {
         jitsiMeetView.leave()
         jitsiMeetView.removeFromSuperview()
         self.delegate?.didJitsiLeave()
     }
+    
+    
     
     public func conferenceWillJoin(_ data: [AnyHashable : Any]!) {
         print("conferenceWillJoin")

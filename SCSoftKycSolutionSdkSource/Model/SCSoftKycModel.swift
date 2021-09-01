@@ -1,13 +1,10 @@
 import Foundation
 import UIKit
 
-@available(iOS 13.0, *)
 public class SCSoftKycModel {
     
     public init() {
     }
-    
-    public var mrzInfo : QKMRZScanResult?
     
     public var idFrontImage : UIImage?
     public var idFrontFaceImage : UIImage?
@@ -27,5 +24,6 @@ public class SCSoftKycModel {
     public var base64_autoCropped_idBackImage : String?
     public var base64_autoCropped_selfieImage : String?
     
-    public var nfcData : IDCardUtil?
+    public var nfcInformation : SCSoftKycNFCInformation?
+    public var mrzInformation : SCSoftKycMRZInformation?
 }

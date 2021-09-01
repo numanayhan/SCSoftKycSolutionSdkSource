@@ -3,7 +3,7 @@ import UIKit
 import AVFoundation
 import Vision
 
-public protocol SCSoftKycSelfieViewDelegate: class {
+public protocol SCSoftKycSelfieViewDelegate: AnyObject {
     
     func didCaptureSelfiePhoto(_ kycView : SCSoftKycSelfieView, image : UIImage , imageBase64 : String, cropImage : UIImage , cropImageBase64 : String)
     
@@ -32,7 +32,7 @@ public class SCSoftKycSelfieView: UIView {
     public var buttonCloseImage : UIImage?
     
     public var isHiddenIdPhotoCameraButton = false
-    public var isHiddenCloseButton = false
+    public var isHiddenCloseButton = true
     
     public weak var delegate: SCSoftKycSelfieViewDelegate?
     //public var _viewTypes = [ViewType]()
@@ -180,7 +180,7 @@ public class SCSoftKycSelfieView: UIView {
     }
     
     public func getMyImage(named : String) -> UIImage? {
-        let bundle = Bundle(for: SCSoftKycView.self)
+        let bundle = Bundle(for: SCSoftKycSelfieView.self)
         return UIImage(named: named, in: bundle, compatibleWith: nil)
     }
     

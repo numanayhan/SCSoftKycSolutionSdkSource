@@ -5,7 +5,7 @@ import Vision
 import SwiftyTesseract
 import QKMRZParser
 
-public protocol SCSoftKycIdBackPhotoViewDelegate: class {
+public protocol SCSoftKycIdBackPhotoViewDelegate: AnyObject {
     
     func didCaptureIdBackPhoto(_ kycView : SCSoftKycIdBackPhotoView, image : UIImage , imageBase64 : String, cropImage : UIImage , cropImageBase64 : String)
     
@@ -13,7 +13,7 @@ public protocol SCSoftKycIdBackPhotoViewDelegate: class {
     
     func didAgeControlOver18(status : Bool)
     
-    func didReadMrz(_ kycView : SCSoftKycIdBackPhotoView, didRead mrzInfo : QKMRZScanResult)
+    func didReadMrz(_ kycView : SCSoftKycIdBackPhotoView, didRead mrzInformation : SCSoftKycMRZInformation)
     
 }
 
@@ -44,12 +44,11 @@ public class SCSoftKycIdBackPhotoView: UIView {
     public var isHiddenIdPhotoInfo = false
     public var isHiddenIdPhotoCameraButton = false
     public var isHiddenIdPhotoFlashButton = false
-    public var isHiddenCloseButton = false
+    public var isHiddenCloseButton = true
     
     public weak var delegate: SCSoftKycIdBackPhotoViewDelegate?
     
     var mrz_18_youngerCheck = false
-    var isSetMrzArea = false
     //Video Capture
     private var bufferSize: CGSize = .zero
     private let videoDataOutputQueue = DispatchQueue(label: "videoDataOutputQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .workItem)
@@ -66,11 +65,8 @@ public class SCSoftKycIdBackPhotoView: UIView {
     private var informationLabel = StatementLabel()
     private let informationNextButton = UIButton()
     private let closeButton = UIButton()
-    //private var flipImageView = UIImageView()
     
     private var sdkModel = SCSoftKycModel()
-    private var isFinish = false
-    //private var isFront = true
     private var checkFace = false
     private var checkMrz = false
     private var checkRectangle = false
@@ -84,12 +80,10 @@ public class SCSoftKycIdBackPhotoView: UIView {
     @objc fileprivate dynamic var isScanning = false
     fileprivate var isScanningPaused = false
     
-    //Capture result
-    //private var capturedImage: UIImage!
     private var capturedFace: UIImage!
     private var capturedMrz: UIImage!
     
-    fileprivate let tesseract = SwiftyTesseract(language: .custom("ocrb"), dataSource: Bundle(for: SCSoftKycView.self), engineMode: .tesseractOnly)
+    fileprivate let tesseract = SwiftyTesseract(language: .custom("ocrb"), dataSource: Bundle(for: SCSoftKycIdBackPhotoView.self), engineMode: .tesseractOnly)
     fileprivate let mrzParser = QKMRZParser(ocrCorrection: true)
     
     fileprivate var inputCIImage: CIImage!
@@ -199,11 +193,6 @@ public class SCSoftKycIdBackPhotoView: UIView {
     private func updateScanArea() {
         var found = false
         
-        if cutoutRect != nil && !isSetMrzArea {
-            isSetMrzArea = true
-            self.initiateMrzArea()
-        }
-        
         if checkRectangle && checkMrz && !checkFace{
             found = true
         }
@@ -229,7 +218,7 @@ public class SCSoftKycIdBackPhotoView: UIView {
     }
     
     public func getMyImage(named : String) -> UIImage? {
-        let bundle = Bundle(for: SCSoftKycView.self)
+        let bundle = Bundle(for: SCSoftKycIdBackPhotoView.self)
         return UIImage(named: named, in: bundle, compatibleWith: nil)
     }
     
@@ -377,19 +366,6 @@ public class SCSoftKycIdBackPhotoView: UIView {
     }
     
     fileprivate func viewChange(){
-        // REMOVE VIEW
-        //idPhoto
-        mrzAreaLabel.isHidden = true
-        add_removeInformationView(isAdd: false)
-        //add_removeFlipImageView(isAdd: false)
-        add_removeCloseButton(isAdd: false)
-        add_removeCutoutView(isAdd: false)
-        add_removeIdPhotoLabel(isAdd: false)
-        add_removeFlashButton(isAdd: false)
-        
-        //share camera view
-        add_removeTakePhotoButton(isAdd: false)
-        
         if !noCameraText.isEmpty && backCamera == nil {
             initiateInformationLabel(text: "Cihazınızda arka kamera bulunmamaktadır.")
             add_removeInformationView(isAdd: true)
@@ -397,63 +373,32 @@ public class SCSoftKycIdBackPhotoView: UIView {
             return
         }
         
-        if isFinish {
-            Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { timer in
-                self.delegate?.didClose(self)
-            }
-            return
-        }
-        
-        // ADD VIEW
-        //share camera view
         layer.addSublayer(videoPreviewLayer)
-        
         
         add_removeCutoutView(isAdd: true)
         add_removeTakePhotoButton(isAdd: true)
         add_removeFlashButton(isAdd: true)
         add_removeIdPhotoLabel(isAdd: true)
         
-        
         idPhotoLabel.shape(infoIdBackText, font: labelFont)
-        mrzAreaLabel.isHidden = false
         idPhotoLabel.textColor = labelTextColor
-        //add_removeFlipImageView(isAdd: true)
-        
         add_removeCloseButton(isAdd: true)
+        
+        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+            if self.cutoutRect != nil {
+                timer.invalidate()
+                self.initiateMrzArea()
+            }
+        }
     }
     
-    public func showIdPhotoView(){
+    public func refreshData(){
         sdkModel.idBackImage = nil
         sdkModel.base64_idBackImage = nil
         sdkModel.autoCropped_idBackImage = nil
         sdkModel.base64_autoCropped_idBackImage = nil
-        sdkModel.mrzInfo = nil
+        sdkModel.mrzInformation = nil
         checkMrz = false
-        
-        
-        if noCameraText.isEmpty{
-            captureSession.beginConfiguration()
-            
-            if let inputs = captureSession.inputs as? [AVCaptureDeviceInput] {
-                for input in inputs {
-                    captureSession.removeInput(input)
-                }
-            }
-            if captureSession.inputs.isEmpty {
-                self.captureSession.addInput(backInput)
-            }
-            
-            //deal with the connection again for portrait mode
-            videoDataOutput.connections.first?.videoOrientation = .portrait
-            //mirror the video stream for front camera
-            videoDataOutput.connections.first?.isVideoMirrored = false
-            //commit config
-            captureSession.commitConfiguration()
-        }
-        DispatchQueue.main.async {
-            self.viewChange()
-        }
     }
     
     @objc private func closeButtonInput(){
@@ -643,28 +588,29 @@ extension SCSoftKycIdBackPhotoView{
     }
     
     fileprivate func initiateMrzArea() {
+        print("initiateMrzArea")
         mrzAreaLabel.numberOfLines = 3
         let text = "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
         mrzAreaLabel.textColor = labelTextColor
         mrzAreaLabel.text = text
-        mrzAreaLabel.isHidden = false
+        //mrzAreaLabel.isHidden = false
         let customfont = UIFont.boldSystemFont(ofSize: 18)
         mrzAreaLabel.font = customfont
         mrzAreaLabel.lineBreakMode = .byCharWrapping
         
-        if cutoutRect != nil {
-            let width = cutoutRect!.width - 20
-            let height = cutoutRect?.height
-            
-            let heightLabel = heightForView(text: text, font: customfont, width: width)
-            
-            let x = (cutoutRect?.origin.x)! + 10
-            let y = (cutoutRect?.origin.y)! + height! - heightLabel-10
-            
-            mrzAreaLabel.frame = CGRect(x: x, y: y, width: width, height: heightLabel)
-        }
+        let calculateRect = cutoutRect!
+        let width = calculateRect.width - 20
+        let height = calculateRect.height
+        
+        let heightLabel = heightForView(text: text, font: customfont, width: width)
+        
+        let x = (calculateRect.origin.x) + 10
+        let y = (calculateRect.origin.y) + height - heightLabel-10
+        
+        mrzAreaLabel.frame = CGRect(x: x, y: y, width: width, height: heightLabel)
+        
         addSubview(mrzAreaLabel)
-        mrzAreaLabel.isHidden = false
+        //mrzAreaLabel.isHidden = false
     }//
     
     func heightForView(text:String, font:UIFont, width:CGFloat) -> CGFloat {
@@ -895,11 +841,11 @@ extension SCSoftKycIdBackPhotoView{
                             let enlargedDocumentImage = self.enlargedDocumentImage(from: self.inputCGImage)
                             let scanResult = QKMRZScanResult(mrzResult: mrzResult, documentImage: enlargedDocumentImage)
                             
-                            self.sdkModel.mrzInfo = scanResult
+                            self.sdkModel.mrzInformation = self.setMRZInfo(scanResult: scanResult)
                             self.capturedMrz = self.getUIImage(from: self.inputCIImage)
                             self.sdkModel.mrzImage = self.capturedMrz
                             
-                            self.delegate?.didReadMrz(self, didRead: self.sdkModel.mrzInfo!)
+                            self.delegate?.didReadMrz(self, didRead: self.sdkModel.mrzInformation!)
                             let currentDateTime = Calendar.current.startOfDay(for: Date())
                             
                             let bDate = Calendar.current.startOfDay(for: scanResult.birthDate!)
@@ -909,17 +855,37 @@ extension SCSoftKycIdBackPhotoView{
                             if age.year! < 18{
                                 self.mrz_18_youngerCheck = true
                                 self.delegate?.didAgeControlOver18(status: false)
-                                self.viewChange()
                             }
                             else {
                                 self.delegate?.didAgeControlOver18(status: true)
                             }
+                            
+                            
                         }
                     }
                 }
             }
         }
     }
+    
+    func setMRZInfo(scanResult : QKMRZScanResult) -> SCSoftKycMRZInformation{
+        let mrzInformation = SCSoftKycMRZInformation()
+        
+        mrzInformation.birthDate = scanResult.birthDate?.toString()
+        mrzInformation.expiryDate = scanResult.expiryDate?.toString()
+        mrzInformation.documentNumber = scanResult.documentNumber
+        mrzInformation.documentType = scanResult.documentType
+        mrzInformation.countryCode = scanResult.countryCode
+        mrzInformation.surnames = scanResult.surnames
+        mrzInformation.givenNames = scanResult.givenNames
+        mrzInformation.nationality = scanResult.nationality
+        mrzInformation.gender = scanResult.sex
+        mrzInformation.personalNumber = scanResult.personalNumber
+        mrzInformation.personalNumber2 = scanResult.personalNumber2
+        
+        return mrzInformation
+    }
+    
     
     // MARK: MRZ
     fileprivate func isMrzValid(mrzInfo: QKMRZResult) -> Bool {
