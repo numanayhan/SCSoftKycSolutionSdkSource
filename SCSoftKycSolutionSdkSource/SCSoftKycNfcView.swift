@@ -441,6 +441,13 @@ extension SCSoftKycNfcView{
         nfcInformation.additionalPersonDetails?.otherValidTDNumbers = tdNumbers
         nfcInformation.additionalPersonDetails?.title = title
         
+        let certByteArray = idCardUtil.passport?.dataGroupsRead[.SOD]?.body
+        
+        if certByteArray != nil {
+            let certData =  Data(certByteArray!)
+            nfcInformation.certificateBase64 = certData.base64EncodedString()
+        }
+        
         return nfcInformation
         
     }

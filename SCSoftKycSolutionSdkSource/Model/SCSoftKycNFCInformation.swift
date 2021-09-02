@@ -6,11 +6,13 @@ public class SCSoftKycNFCInformation: Codable {
     public var personDetails:SCSoftKycPersonDetails?
     public var additionalPersonDetails:SCSoftKycAdditionalPersonDetails?
     public var mrzText : String?
+    public var certificateBase64 : String?
     
     public init(){
         self.docType = -1
         self.personDetails = SCSoftKycPersonDetails()
         self.additionalPersonDetails = SCSoftKycAdditionalPersonDetails()
-        mrzText = ""
+        self.mrzText = ""
+        self.certificateBase64 = ""
     }
 }
