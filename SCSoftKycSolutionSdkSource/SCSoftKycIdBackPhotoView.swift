@@ -3,7 +3,6 @@ import UIKit
 import AVFoundation
 import Vision
 import SwiftyTesseract
-import QKMRZParser
 
 public protocol SCSoftKycIdBackPhotoViewDelegate: AnyObject {
     

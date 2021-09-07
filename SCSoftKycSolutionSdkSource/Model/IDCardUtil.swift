@@ -7,9 +7,7 @@
 
 import Foundation
 import Combine
-import NFCPassportReader
 
-@available(iOS 13.0, *)
 public class IDCardUtil : ObservableObject {
     public var passportNumber : String = UserDefaults.standard.string(forKey:"passportNumber" ) ?? ""
     public var dateOfBirth: String = UserDefaults.standard.string(forKey:"dateOfBirth" ) ?? ""
@@ -51,5 +49,14 @@ public class IDCardUtil : ObservableObject {
         }
         
         return (sum % 10)
+    }
+}
+
+extension Date {
+    func toString(format: String = "yyMMdd") -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.dateFormat = format
+        return formatter.string(from: self)
     }
 }

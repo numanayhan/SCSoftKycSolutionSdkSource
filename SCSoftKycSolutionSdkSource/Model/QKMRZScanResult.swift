@@ -8,7 +8,6 @@
 import Foundation
 import UIKit
 import CoreImage
-import QKMRZParser
 
 public class QKMRZScanResult {
     public let documentImage: UIImage

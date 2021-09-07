@@ -1,7 +1,6 @@
 import Foundation
 import UIKit
 import CoreNFC
-import NFCPassportReader
 
 @available(iOS 13, *)
 public protocol SCSoftKycNfcViewDelegate: AnyObject {
