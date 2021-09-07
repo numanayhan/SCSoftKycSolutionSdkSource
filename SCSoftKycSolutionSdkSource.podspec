@@ -8,7 +8,7 @@ Pod::Spec.new do |spec|
   spec.license      = "MIT"
   spec.author       = { "Sami Ozakyol" => "samiozakyol@gmail.com" }
   spec.platform 	   = :ios
-  spec.ios.deployment_target = "12.0"
+  spec.ios.deployment_target = "11.0"
   spec.source       = { :git => 'https://github.com/samiozakyol/SCSoftKycSolutionSdkSource.git', :tag => spec.version }
   
   spec.source_files = "SCSoftKycSolutionSdkSource/**/*.{swift}"
@@ -16,8 +16,7 @@ Pod::Spec.new do |spec|
 
   spec.swift_version = "5.0"
 
-  spec.dependency "QKMRZParser", '1.0.1'
-  spec.dependency "NFCPassportReader" , '1.1.4'
+  spec.dependency "OpenSSL-Universal", '1.1.180'
   spec.dependency "SwiftyTesseract", '3.1.3'
   spec.dependency "JitsiMeetSDK" , '3.3.0'
 
