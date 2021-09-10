@@ -67,7 +67,7 @@ public class SCSoftKycNfcView: UIView {
     
     
     private var hasNfc = false
-    private var nfcErrorCount = 0
+    var nfcErrorCount = 0
     private var captureImageStatus = 0
     private var noCameraText = ""
     

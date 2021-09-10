@@ -157,7 +157,7 @@ extension SCSoftKycJitsiView: JitsiMeetViewDelegate {
             builder.setFeatureFlag("raise-hand.enabled", withBoolean: false)
             builder.setFeatureFlag("video-share.enabled", withBoolean: false)
             builder.setFeatureFlag("toolbox.alwaysVisible", withBoolean: false)
-            builder.setFeatureFlag("toolbox.enabled", withBoolean: false)//
+            //builder.setFeatureFlag("toolbox.enabled", withBoolean: false)//
             builder.setFeatureFlag("live-streaming.enabled", withBoolean: false)
             builder.setFeatureFlag("chat.enabled", withBoolean: false)
             builder.setFeatureFlag("meeting-password.enabled", withBoolean: false)
