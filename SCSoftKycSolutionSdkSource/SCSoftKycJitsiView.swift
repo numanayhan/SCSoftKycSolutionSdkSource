@@ -4,7 +4,7 @@ import JitsiMeetSDK
 
 public protocol SCSoftKycJitsiViewDelegate: AnyObject {
     
-    func didClose(_ kycView: SCSoftKycJitsiView)
+    //func didClose(_ kycView: SCSoftKycJitsiView)
     func didJitsiLeave()
 }
 
@@ -21,7 +21,7 @@ public class SCSoftKycJitsiView: UIView {
     
     // Jitsi config
     fileprivate var inJitsi : Bool = false
-    fileprivate var jitsiMeetView = JitsiMeetView()
+    fileprivate var jitsiMeetView: JitsiMeetView?
     
     // MARK: Initializers
     override public init(frame: CGRect) {
@@ -53,7 +53,6 @@ public class SCSoftKycJitsiView: UIView {
     
     @objc private func closeButtonInput(){
         leaveJitsi()
-        self.delegate?.didClose(self)
     }
     
 }
@@ -61,18 +60,20 @@ public class SCSoftKycJitsiView: UIView {
 extension SCSoftKycJitsiView{
     
     fileprivate func add_removeJitsiView(isAdd : Bool){
-        if isAdd {
-            addSubview(jitsiMeetView)
-            jitsiMeetView.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                jitsiMeetView.topAnchor.constraint(equalTo: topAnchor),
-                jitsiMeetView.bottomAnchor.constraint(equalTo: bottomAnchor),
-                jitsiMeetView.leftAnchor.constraint(equalTo: leftAnchor),
-                jitsiMeetView.rightAnchor.constraint(equalTo: rightAnchor)
-            ])
-        }
-        else{
-            jitsiMeetView.removeFromSuperview()
+        if jitsiMeetView != nil {
+            if isAdd {
+                addSubview(jitsiMeetView!)
+                jitsiMeetView!.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    jitsiMeetView!.topAnchor.constraint(equalTo: topAnchor),
+                    jitsiMeetView!.bottomAnchor.constraint(equalTo: bottomAnchor),
+                    jitsiMeetView!.leftAnchor.constraint(equalTo: leftAnchor),
+                    jitsiMeetView!.rightAnchor.constraint(equalTo: rightAnchor)
+                ])
+            }
+            else{
+                jitsiMeetView!.removeFromSuperview()
+            }
         }
     }
     
@@ -105,7 +106,7 @@ extension SCSoftKycJitsiView{
         closeButton.isHidden = isHiddenCloseButton
     }
     
-    public func getMyImage(named : String) -> UIImage? {
+    private func getMyImage(named : String) -> UIImage? {
         let bundle = Bundle(for: SCSoftKycJitsiView.self)
         return UIImage(named: named, in: bundle, compatibleWith: nil)
     }
@@ -129,12 +130,13 @@ extension SCSoftKycJitsiView: JitsiMeetViewDelegate {
     }
     
     public func leaveJitsi() {
-        jitsiMeetView.leave()
-        jitsiMeetView.removeFromSuperview()
-        self.delegate?.didJitsiLeave()
+        if jitsiMeetView != nil {
+            jitsiMeetView!.leave()
+            jitsiMeetView!.removeFromSuperview()
+            jitsiMeetView = nil
+            self.delegate?.didJitsiLeave()
+        }
     }
-    
-    
     
     public func conferenceWillJoin(_ data: [AnyHashable : Any]!) {
         print("conferenceWillJoin")
