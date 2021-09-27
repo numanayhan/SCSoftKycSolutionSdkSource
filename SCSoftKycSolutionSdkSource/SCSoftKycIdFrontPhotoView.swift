@@ -19,7 +19,7 @@ public class SCSoftKycIdFrontPhotoView: UIView {
     // Public variables
     
     public var infoIdFrontText = "Kimlik kartınızın ön yüzünü belirtilen kare içerisine alarak fotoğraf çekme butonuna basınız."
-    public var autoTakePhoto = true
+    public var autoTakePhoto = false
     private var autoTakePhotoCounter = 1
     public var activeColor = UIColor(red: 27.0 / 255.0, green: 170.0 / 255.0, blue: 194.0 / 255.0, alpha: 1.0)
     public var passiveColor = UIColor.white
