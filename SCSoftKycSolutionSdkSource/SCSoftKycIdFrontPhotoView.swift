@@ -19,7 +19,8 @@ public class SCSoftKycIdFrontPhotoView: UIView {
     // Public variables
     
     public var infoIdFrontText = "Kimlik kartınızın ön yüzünü belirtilen kare içerisine alarak fotoğraf çekme butonuna basınız."
-    
+    public var autoTakePhoto = true
+    private var autoTakePhotoCounter = 1
     public var activeColor = UIColor(red: 27.0 / 255.0, green: 170.0 / 255.0, blue: 194.0 / 255.0, alpha: 1.0)
     public var passiveColor = UIColor.white
     public var buttonBackgroundColor = UIColor(red: 27.0 / 255.0, green: 170.0 / 255.0, blue: 194.0 / 255.0, alpha: 1.0)
@@ -183,11 +184,18 @@ public class SCSoftKycIdFrontPhotoView: UIView {
     private func updateScanArea() {
         var found = false
         
-        if checkRectangle && checkFace{
+        if checkRectangle && checkFace && self.inputCGImage != nil && self.sdkModel.autoCropped_idFrontImage != nil && self.sdkModel.idFrontFaceImage != nil{
             found = true
         }
         
         DispatchQueue.main.async {
+            if found && self.autoTakePhoto {
+                if self.autoTakePhotoCounter % 3 == 0{
+                    self.analyzeCard()
+                    self.autoTakePhoto = false
+                }
+                self.autoTakePhotoCounter += 1
+            }
             let selectedColor = (found) ? self.activeColor.cgColor : self.passiveColor.cgColor
             (self.cutoutView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor = selectedColor
             self.cutoutView.layoutIfNeeded()
