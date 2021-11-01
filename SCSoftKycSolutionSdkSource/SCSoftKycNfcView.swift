@@ -88,7 +88,6 @@ public class SCSoftKycNfcView: UIView {
             hasNfc = true
         }
         setViewStyle()
-        self.delegate?.getNfcAvailable(self, hasNfc: self.hasNfc)
     }
     
     fileprivate func setViewStyle() {
@@ -104,6 +103,8 @@ public class SCSoftKycNfcView: UIView {
         self.initiateNfcReadButton()
         self.initiateCloseButton()
         self.viewChange()
+        
+        self.delegate?.getNfcAvailable(self, hasNfc: self.hasNfc)
     }
     
     public func getMyImage(named : String) -> UIImage? {

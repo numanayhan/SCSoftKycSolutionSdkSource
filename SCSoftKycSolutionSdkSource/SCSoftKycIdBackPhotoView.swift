@@ -198,8 +198,8 @@ public class SCSoftKycIdBackPhotoView: UIView {
         }
         
         DispatchQueue.main.async {
-            if found && self.autoTakePhoto {
-                if self.autoTakePhotoCounter % 3 == 0{
+            if (found && self.autoTakePhoto) {
+                if (self.autoTakePhotoCounter % 3 == 0){
                     self.analyzeCard()
                     self.autoTakePhoto = false
                 }
@@ -652,23 +652,29 @@ extension SCSoftKycIdBackPhotoView{
     }
     
     private func initiateFlashButton(){
-        flashButton.isOn = false
-        if self.buttonFlashOnImage != nil && self.buttonFlashOffImage != nil {
-            flashButton.offImage = buttonFlashOffImage
-            flashButton.onImage = buttonFlashOnImage
+        let avDevice = AVCaptureDevice.default(for: AVMediaType.video)
+        if avDevice?.hasFlash == false {
+            flashButton.isHidden = true
         }
-        else {
-            flashButton.offImage = self.getMyImage(named: "flash-off")
-            flashButton.onImage = self.getMyImage(named: "flash")
+        else if avDevice?.hasFlash == true{
+            flashButton.isOn = false
+            if self.buttonFlashOnImage != nil && self.buttonFlashOffImage != nil {
+                flashButton.offImage = buttonFlashOffImage
+                flashButton.onImage = buttonFlashOnImage
+            }
+            else {
+                flashButton.offImage = self.getMyImage(named: "flash-off")
+                flashButton.onImage = self.getMyImage(named: "flash")
+            }
+            
+            if cameraFlashState {
+                flashButton.isOn = true
+                self.flashState()
+            }
+            
+            flashButton.addTarget(self, action: #selector(self.flashState), for:.touchUpInside)
+            flashButton.isHidden = isHiddenIdPhotoFlashButton
         }
-        
-        if cameraFlashState {
-            flashButton.isOn = true
-            self.flashState()
-        }
-        
-        flashButton.addTarget(self, action: #selector(self.flashState), for:.touchUpInside)
-        flashButton.isHidden = isHiddenIdPhotoFlashButton
     }
     
     private func initiateTakePhotoButton() {
@@ -776,23 +782,11 @@ extension SCSoftKycIdBackPhotoView{
         self.checkRectangle = true
         self.updateScanArea()
         
-        
         let imageSize = inputCIImage!.extent.size
-        
         let boundingBox = detectedRectangle.boundingBox.scaled(to: imageSize)
-        //let topLeft = detectedRectangle.topLeft.scaled(to: imageSize)
-        //let topRight = detectedRectangle.topRight.scaled(to: imageSize)
-        //let bottomLeft = detectedRectangle.bottomLeft.scaled(to: imageSize)
-        //let bottomRight = detectedRectangle.bottomRight.scaled(to: imageSize)
         
         let correctedImage = inputCIImage!
             .cropped(to: boundingBox)
-        //.applyingFilter("CIPerspectiveCorrection", parameters: [
-        //    "inputTopLeft": CIVector(cgPoint: topLeft),
-        //    "inputTopRight": CIVector(cgPoint: topRight),
-        //    "inputBottomLeft": CIVector(cgPoint: bottomLeft),
-        //    "inputBottomRight": CIVector(cgPoint: bottomRight)
-        //])
         
         let cgImage = CIContext.shared.createCGImage(correctedImage, from: correctedImage.extent)
         DispatchQueue.main.async {
@@ -991,13 +985,13 @@ extension SCSoftKycIdBackPhotoView: AVCaptureVideoDataOutputSampleBufferDelegate
             self.inputCGImage = cgImage
         }
         
-        if sdkModel.idBackImage != nil && sdkModel.autoCropped_idBackImage == nil {
+        /*if sdkModel.idBackImage != nil && sdkModel.autoCropped_idBackImage == nil {
             let cgImage = sdkModel.idBackImage?.cgImage
             if cgImage != nil {
                 self.inputCIImage = convertCGImageToCIImage(inputImage: cgImage!)
                 self.inputCGImage = cgImage
             }
-        }
+        }*/
         
         performVisionRequest(image: inputCGImage, orientation: .up)
     }

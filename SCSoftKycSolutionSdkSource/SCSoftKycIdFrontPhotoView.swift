@@ -78,7 +78,7 @@ public class SCSoftKycIdFrontPhotoView: UIView {
     
     //Capture result
     //private var capturedImage: UIImage!
-    private var capturedFace: UIImage!
+    private var capturedFace: UIImage?
     private var capturedMrz: UIImage!
     
     fileprivate var inputCIImage: CIImage!
@@ -614,23 +614,29 @@ extension SCSoftKycIdFrontPhotoView{
     }
     
     private func initiateFlashButton(){
-        flashButton.isOn = false
-        if self.buttonFlashOnImage != nil && self.buttonFlashOffImage != nil {
-            flashButton.offImage = buttonFlashOffImage
-            flashButton.onImage = buttonFlashOnImage
+        let avDevice = AVCaptureDevice.default(for: AVMediaType.video)
+        if avDevice?.hasFlash == false {
+            flashButton.isHidden = true
         }
-        else {
-            flashButton.offImage = self.getMyImage(named: "flash-off")
-            flashButton.onImage = self.getMyImage(named: "flash")
+        else if avDevice?.hasFlash == true{
+            flashButton.isOn = false
+            if self.buttonFlashOnImage != nil && self.buttonFlashOffImage != nil {
+                flashButton.offImage = buttonFlashOffImage
+                flashButton.onImage = buttonFlashOnImage
+            }
+            else {
+                flashButton.offImage = self.getMyImage(named: "flash-off")
+                flashButton.onImage = self.getMyImage(named: "flash")
+            }
+            
+            if cameraFlashState {
+                flashButton.isOn = true
+                self.flashState()
+            }
+            
+            flashButton.addTarget(self, action: #selector(self.flashState), for:.touchUpInside)
+            flashButton.isHidden = isHiddenIdPhotoFlashButton
         }
-        
-        if cameraFlashState {
-            flashButton.isOn = true
-            self.flashState()
-        }
-        
-        flashButton.addTarget(self, action: #selector(self.flashState), for:.touchUpInside)
-        flashButton.isHidden = isHiddenIdPhotoFlashButton
     }
     
     private func initiateTakePhotoButton() {
@@ -720,8 +726,8 @@ extension SCSoftKycIdFrontPhotoView{
         
         // Create an array to collect all desired requests.
         var requests: [VNRequest] = []
-        requests.append(self.rectanglesRequest)
         requests.append(self.facesRequest)
+        requests.append(self.rectanglesRequest)
         
         // Return grouped requests as a single array.
         return requests
@@ -748,8 +754,10 @@ extension SCSoftKycIdFrontPhotoView{
             if cgImage != nil{
                 self.sdkModel.autoCropped_idFrontImage = UIImage(cgImage: cgImage!)
                 self.sdkModel.base64_autoCropped_idFrontImage = self.sdkModel.autoCropped_idFrontImage?.toBase64(format: .png)
-                self.sdkModel.idFrontFaceImage = self.capturedFace
-                self.sdkModel.base64_idFrontFaceImage = self.sdkModel.idFrontFaceImage?.toBase64(format: .png)
+                if self.capturedFace != nil {
+                    self.sdkModel.idFrontFaceImage = self.capturedFace
+                    self.sdkModel.base64_idFrontFaceImage = self.sdkModel.idFrontFaceImage?.toBase64(format: .png)
+                }
             }
         }
     }
@@ -790,6 +798,14 @@ extension SCSoftKycIdFrontPhotoView: AVCaptureVideoDataOutputSampleBufferDelegat
         else {
             self.inputCGImage = cgImage
         }
+        
+        /*if sdkModel.idFrontImage != nil && sdkModel.autoCropped_idFrontImage == nil {
+            let cgImage = sdkModel.idFrontImage?.cgImage
+            if cgImage != nil {
+                self.inputCIImage = convertCGImageToCIImage(inputImage: cgImage!)
+                self.inputCGImage = cgImage
+            }
+        }*/
         performVisionRequest(image: inputCGImage, orientation: .up)
     }
     
