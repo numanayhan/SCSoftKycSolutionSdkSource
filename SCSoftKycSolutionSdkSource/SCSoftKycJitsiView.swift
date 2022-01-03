@@ -172,7 +172,8 @@ extension SCSoftKycJitsiView: JitsiMeetViewDelegate {
             builder.setFeatureFlag("meeting-name.enabled", withBoolean: false)
             builder.setFeatureFlag("pip.enabled", withBoolean: false)
             builder.setFeatureFlag("recording.enabled", withBoolean: false)
-            builder.setFeatureFlag("resolution", withBoolean: false)
+            //builder.setFeatureFlag("resolution", withBoolean: false)
+            builder.setFeatureFlag("resolution", withValue: 360)
             builder.setFeatureFlag("server-url-change.enabled", withBoolean: false)
             builder.setFeatureFlag("tile-view.enabled", withBoolean: false)
         }
