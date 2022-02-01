@@ -417,7 +417,8 @@ extension SCSoftKycNfcView{
         let phone = dg11?.telephone ?? ""
         let fullName = dg11?.fullName ?? ""
         let custodyInfo = dg11?.custodyInfo ?? ""
-        let fulldateOfBirth = idCardUtil.passport?.dateOfBirth ?? ""
+       // let fulldateOfBirth = idCardUtil.passport?.dateOfBirth ?? ""
+        let fulldateOfBirth = dg11?.dateOfBirth ?? nfcInformation.personDetails?.birthDate
         let title = dg11?.title ?? ""
         let profession = dg11?.profession ?? ""
         let proofOfCitizenship = dg11?.proofOfCitizenship ?? ""
