@@ -10,6 +10,12 @@ import UIKit
 import AVFoundation
 import Vision
 
+public enum HeadPosition {
+    case left
+    case right
+}
+
+@available(iOS 12, *)
 public protocol SCSoftKycHeadPoseViewDelegate: AnyObject {
     
     func didAutonomousFacePredictionHeadPoseSuccess(_ kycView : SCSoftKycHeadPoseView,  image : UIImage , imageBase64 : String, direction: HeadPosition)
@@ -18,11 +24,7 @@ public protocol SCSoftKycHeadPoseViewDelegate: AnyObject {
     
 }
 
-public enum HeadPosition {
-    case left
-    case right
-}
-
+@available(iOS 12, *)
 @IBDesignable
 public class SCSoftKycHeadPoseView: UIView {
     
@@ -450,6 +452,7 @@ public class SCSoftKycHeadPoseView: UIView {
     
 }
 
+@available(iOS 12, *)
 extension SCSoftKycHeadPoseView{
     
     fileprivate func add_removeInformationView(isAdd : Bool){
@@ -825,6 +828,7 @@ extension SCSoftKycHeadPoseView{
     
 }
 
+@available(iOS 12, *)
 extension SCSoftKycHeadPoseView: AVCaptureVideoDataOutputSampleBufferDelegate  {
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         
@@ -858,6 +862,7 @@ extension SCSoftKycHeadPoseView: AVCaptureVideoDataOutputSampleBufferDelegate  {
     }
 }
 
+@available(iOS 12, *)
 extension SCSoftKycHeadPoseView: AVCaptureMetadataOutputObjectsDelegate {
     
     public func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
