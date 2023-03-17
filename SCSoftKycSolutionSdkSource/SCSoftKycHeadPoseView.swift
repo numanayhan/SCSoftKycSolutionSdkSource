@@ -58,6 +58,7 @@ public class SCSoftKycHeadPoseView: UIView {
     //var avFaceID = StatementLabel()
     //var avFaceRoll = StatementLabel()
     //var avFaceYaw = StatementLabel()
+    //var avFaceYaw2 = StatementLabel()
     var faceDetector: CIDetector?
     
     public weak var delegate: SCSoftKycHeadPoseViewDelegate?
@@ -127,9 +128,9 @@ public class SCSoftKycHeadPoseView: UIView {
     func initialize() {
         FilterVendor.registerFilters()
         setViewStyle()
-        
         refreshTimer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(runTimedCode), userInfo: nil, repeats: true)
         addAppObservers()
+        //setupAndStartCaptureSession()
     }
     
     // MARK: UIApplication Observers
@@ -174,22 +175,23 @@ public class SCSoftKycHeadPoseView: UIView {
     }
     
     public func initiateScreen(initialHeadPosition : HeadPosition){
-        isCatchPhoto = false;
-        setupAndStartCaptureSession()
-        
-        (self.headPoseView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor = UIColor.clear.cgColor
-        self.headPoseView.layoutIfNeeded()
-        (self.cutoutSelfieView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor =  self.passiveColor.cgColor
-        self.cutoutSelfieView.layoutIfNeeded()
-        
-        //DispatchQueue.main.async {
-        self.initialHeadPosition = initialHeadPosition
-        self.initiateTakePhotoButton()
-        self.initiateInformationNextButton(stateIsEnd: true)
-        self.initiateCloseButton()
-        self.viewChange()
-        informationLabel.isHidden = isHiddenInformationLabel
-    
+        DispatchQueue.main.async {
+            self.isCatchPhoto = false
+            self.setupAndStartCaptureSession()
+            
+            (self.headPoseView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor = UIColor.clear.cgColor
+            self.headPoseView.layoutIfNeeded()
+            (self.cutoutSelfieView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor =  self.passiveColor.cgColor
+            self.cutoutSelfieView.layoutIfNeeded()
+            
+            //DispatchQueue.main.async {
+            self.initialHeadPosition = initialHeadPosition
+            self.initiateTakePhotoButton()
+            self.initiateInformationNextButton(stateIsEnd: true)
+            self.initiateCloseButton()
+            self.viewChange()
+            self.informationLabel.isHidden = self.isHiddenInformationLabel
+        }
     }
     
     private func updateScanArea() {
@@ -337,7 +339,7 @@ public class SCSoftKycHeadPoseView: UIView {
         } else {
             print("Meta data output can not be added.")
         }
-
+        
         metadataOutput.metadataObjectTypes = [AVMetadataObject.ObjectType.face]
         
         if captureSession.canAddOutput(videoDataOutput) {
@@ -363,10 +365,10 @@ public class SCSoftKycHeadPoseView: UIView {
         let attrs1 = [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 18), NSAttributedString.Key.foregroundColor : UIColor.white]
         let attrs2 = [NSAttributedString.Key.font : UIFont.boldSystemFont(ofSize: 18), NSAttributedString.Key.foregroundColor : UIColor.systemOrange]
         
-       //let uuid =  UIDevice.current.identifierForVendor!.uuidString
+        //let uuid =  UIDevice.current.identifierForVendor!.uuidString
         
         let attributedString1 = NSMutableAttributedString(string: "Lütfen yüzünüz daire içinde olacak şekilde", attributes:attrs1)
-       
+        
         var textDirection = ""
         var arrowDirection = ""
         if self.initialHeadPosition == HeadPosition.left {
@@ -445,7 +447,7 @@ public class SCSoftKycHeadPoseView: UIView {
         refreshTimer?.invalidate()
         self.delegate?.didClose(self)
     }
-
+    
 }
 
 extension SCSoftKycHeadPoseView{
@@ -465,12 +467,12 @@ extension SCSoftKycHeadPoseView{
             //informationLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
             
             /*informationNextButton.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                informationNextButton.heightAnchor.constraint(equalToConstant: 50),
-                informationNextButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -30),
-                informationNextButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 30),
-                informationNextButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -30)
-            ])*/
+             NSLayoutConstraint.activate([
+             informationNextButton.heightAnchor.constraint(equalToConstant: 50),
+             informationNextButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -30),
+             informationNextButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 30),
+             informationNextButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -30)
+             ])*/
             
         }
         else{
@@ -495,12 +497,12 @@ extension SCSoftKycHeadPoseView{
             //informationLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
             
             /*informationNextButton.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                informationNextButton.heightAnchor.constraint(equalToConstant: 50),
-                informationNextButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -30),
-                informationNextButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 30),
-                informationNextButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -30)
-            ])*/
+             NSLayoutConstraint.activate([
+             informationNextButton.heightAnchor.constraint(equalToConstant: 50),
+             informationNextButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -30),
+             informationNextButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 30),
+             informationNextButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -30)
+             ])*/
             
         }
         else{
@@ -508,41 +510,47 @@ extension SCSoftKycHeadPoseView{
             //informationNextButton.removeFromSuperview()
         }
     }
+    
     /*fileprivate func add_removePoseViewButton(isAdd : Bool){
-        if isAdd {
-            var startTop : CGFloat = 50
-            addSubview(ciFaceID)
-            addSubview(ciFaceAngle)
-            addSubview(avFaceID)
-            addSubview(avFaceRoll)
-            addSubview(avFaceYaw)
-            ciFaceID.translatesAutoresizingMaskIntoConstraints = false
-            ciFaceAngle.translatesAutoresizingMaskIntoConstraints = false
-            avFaceID.translatesAutoresizingMaskIntoConstraints = false
-            avFaceRoll.translatesAutoresizingMaskIntoConstraints = false
-            avFaceYaw.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                ciFaceID.topAnchor.constraint(equalTo: topAnchor, constant: startTop),
-                ciFaceAngle.topAnchor.constraint(equalTo: topAnchor, constant: startTop+20),
-                avFaceID.topAnchor.constraint(equalTo: topAnchor, constant: startTop+40),
-                avFaceRoll.topAnchor.constraint(equalTo: topAnchor, constant: startTop+60),
-                avFaceYaw.topAnchor.constraint(equalTo: topAnchor, constant: startTop + 80),
-                
-                ciFaceID.centerXAnchor.constraint(equalTo: centerXAnchor),
-                ciFaceAngle.centerXAnchor.constraint(equalTo: centerXAnchor),
-                avFaceID.centerXAnchor.constraint(equalTo: centerXAnchor),
-                avFaceRoll.centerXAnchor.constraint(equalTo: centerXAnchor),
-                avFaceYaw.centerXAnchor.constraint(equalTo: centerXAnchor)
-            ])
-        }
-        else{
-            ciFaceID.removeFromSuperview()
-            ciFaceAngle.removeFromSuperview()
-            avFaceID.removeFromSuperview()
-            avFaceRoll.removeFromSuperview()
-            avFaceYaw.removeFromSuperview()
-        }
-    }*/
+     if isAdd {
+     var startTop : CGFloat = 50
+     addSubview(ciFaceID)
+     addSubview(ciFaceAngle)
+     addSubview(avFaceID)
+     addSubview(avFaceRoll)
+     addSubview(avFaceYaw)
+     addSubview(avFaceYaw2)
+     ciFaceID.translatesAutoresizingMaskIntoConstraints = false
+     ciFaceAngle.translatesAutoresizingMaskIntoConstraints = false
+     avFaceID.translatesAutoresizingMaskIntoConstraints = false
+     avFaceRoll.translatesAutoresizingMaskIntoConstraints = false
+     avFaceYaw.translatesAutoresizingMaskIntoConstraints = false
+     avFaceYaw2.translatesAutoresizingMaskIntoConstraints = false
+     NSLayoutConstraint.activate([
+     ciFaceID.topAnchor.constraint(equalTo: topAnchor, constant: startTop),
+     ciFaceAngle.topAnchor.constraint(equalTo: topAnchor, constant: startTop+20),
+     avFaceID.topAnchor.constraint(equalTo: topAnchor, constant: startTop+40),
+     avFaceRoll.topAnchor.constraint(equalTo: topAnchor, constant: startTop+60),
+     avFaceYaw.topAnchor.constraint(equalTo: topAnchor, constant: startTop + 80),
+     avFaceYaw2.topAnchor.constraint(equalTo: topAnchor, constant: startTop + 100),
+     
+     ciFaceID.centerXAnchor.constraint(equalTo: centerXAnchor),
+     ciFaceAngle.centerXAnchor.constraint(equalTo: centerXAnchor),
+     avFaceID.centerXAnchor.constraint(equalTo: centerXAnchor),
+     avFaceRoll.centerXAnchor.constraint(equalTo: centerXAnchor),
+     avFaceYaw.centerXAnchor.constraint(equalTo: centerXAnchor),
+     avFaceYaw2.centerXAnchor.constraint(equalTo: centerXAnchor)
+     ])
+     }
+     else{
+     ciFaceID.removeFromSuperview()
+     ciFaceAngle.removeFromSuperview()
+     avFaceID.removeFromSuperview()
+     avFaceRoll.removeFromSuperview()
+     avFaceYaw.removeFromSuperview()
+     avFaceYaw2.removeFromSuperview()
+     }
+     }*/
     
     fileprivate func add_removeTakePhotoButton(isAdd : Bool){
         if isAdd {
@@ -758,12 +766,53 @@ extension SCSoftKycHeadPoseView{
     fileprivate func handleFacesRequest(request: VNRequest, error: Error?) {
         guard let observations = request.results as? [VNFaceObservation] else { return }
         guard let detectedFace = observations.first else { return }
+        
         if inputCIImage == nil || inputCGImage == nil {return}
         
-        DispatchQueue.main.async {
-            //self.checkFace = true
-            self.updateScanArea()
+        if self.isCatchPhoto{
+            return
         }
+        
+        DispatchQueue.main.async {
+            if (detectedFace.yaw != nil) {
+                //self.avFaceYaw2.text = "yaw2: \(Int(detectedFace.yaw!.doubleValue * 100.0))"
+                
+                var liveHeadPosition = HeadPosition.left
+                let yawValue = Int(detectedFace.yaw!.doubleValue * 100.0)
+                
+                var yawAngle = 0
+                
+                if (yawValue > 0) {
+                    liveHeadPosition = HeadPosition.left
+                    yawAngle = yawValue
+                } else {
+                    liveHeadPosition = HeadPosition.right
+                    yawAngle = -yawValue
+                }
+                
+                if self.initialHeadPosition == liveHeadPosition && yawAngle > (self.yawAngle + 20) {
+                    self.captureSession.stopRunning()
+                    self.isCatchPhoto = true
+                    self.checkFace = true
+                    
+                    (self.headPoseView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor = self.activeColorHeadPose.cgColor
+                    self.headPoseView.layoutIfNeeded()
+                    (self.cutoutSelfieView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor = self.activeColorHeadPose.cgColor
+                    self.cutoutSelfieView.layoutIfNeeded()
+                    
+                    var selfieImage = UIImage(cgImage: self.inputCGImage)
+                    //var autoCropped_selfieImage = self.capturedFace
+                    var base64_selfieImage =  selfieImage.toBase64(format: .jpeg(50))
+                    //var base64_autoCropped_selfieImage = autoCropped_selfieImage?.toBase64(format: .jpeg(50))
+                    self.delegate?.didAutonomousFacePredictionHeadPoseSuccess(self,image: selfieImage,imageBase64: base64_selfieImage!, direction: liveHeadPosition)
+                }
+                else{
+                    self.checkFace = false
+                }
+                self.updateScanArea()
+            }
+        }
+        
         let imageSize = self.inputCIImage.extent.size
         let boundingBox = detectedFace.boundingBox.scaled(to: imageSize)
         let rect = CGRect(x: boundingBox.origin.x, y: boundingBox.origin.y  , width: boundingBox.width, height: boundingBox.height + 50)
@@ -788,7 +837,7 @@ extension SCSoftKycHeadPoseView: AVCaptureVideoDataOutputSampleBufferDelegate  {
         }
         
         performVisionRequest(image: inputCGImage, orientation: .up)
-
+        
         if self.inputCIImage != nil {
             let detectorOptions: [String: AnyObject] = [CIDetectorSmile: true as AnyObject, CIDetectorEyeBlink: true as AnyObject, CIDetectorImageOrientation : 6 as AnyObject]
             
@@ -813,60 +862,66 @@ extension SCSoftKycHeadPoseView: AVCaptureMetadataOutputObjectsDelegate {
     
     public func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
         
-        for metadataObject in metadataObjects as! [AVMetadataFaceObject] {
-            if isCatchPhoto{
-                return
-            }
-            
-            DispatchQueue.main.async {
-                //self.avFaceID.text = "face ID: \(metadataObject.faceID)"
-                //self.avFaceRoll.text = "roll: \(Int(metadataObject.rollAngle))"
-                //self.avFaceYaw.text = "yaw: \(Int(metadataObject.yawAngle))"
-                
-                var liveHeadPosition = HeadPosition.left
-                let yawValue = Int(metadataObject.yawAngle)
-                
-                var yawAngle = 0
-                if yawValue < 180{
-                    liveHeadPosition = HeadPosition.left
-                    yawAngle = yawValue
-                }
-                else {
-                    liveHeadPosition = HeadPosition.right
-                    yawAngle = 360 - Int(metadataObject.yawAngle)
-                }
-                
-                if self.initialHeadPosition == liveHeadPosition && yawAngle > self.yawAngle {
-                    self.isCatchPhoto = true
-                    self.checkFace = true
-                    self.captureSession.stopRunning()
-                    
-                    (self.headPoseView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor = self.activeColorHeadPose.cgColor
-                    self.headPoseView.layoutIfNeeded()
-                    (self.cutoutSelfieView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor = self.activeColorHeadPose.cgColor
-                    self.cutoutSelfieView.layoutIfNeeded()
-                    
-                    var selfieImage = UIImage(cgImage: self.inputCGImage)
-                    //var autoCropped_selfieImage = self.capturedFace
-                    var base64_selfieImage =  selfieImage.toBase64(format: .jpeg(50))
-                    //var base64_autoCropped_selfieImage = autoCropped_selfieImage?.toBase64(format: .jpeg(50))
-                    self.delegate?.didAutonomousFacePredictionHeadPoseSuccess(self,image: selfieImage,imageBase64: base64_selfieImage!, direction: liveHeadPosition)
-                }
-                else{
-                    self.checkFace = false
-                }
-                self.updateScanArea()
-                /*sağ 310
-                sol 50
-                let directionStr = "left"
-                let yawValueAngle = Int(metadataObject.yawAngle) - 360
-                if yawValue > 0 {
-                    directionStr =
-                }*/
-                    
-                //self.avFaceYaw.text = "yaw: \(yawValue)"
-            }
-        }
+        /*
+         for metadataObject in metadataObjects as! [AVMetadataFaceObject] {
+         if isCatchPhoto{
+         return
+         }
+         
+         DispatchQueue.main.async {
+         //self.avFaceID.text = "face ID: \(metadataObject.faceID)"
+         //self.avFaceRoll.text = "roll: \(Int(metadataObject.rollAngle))"
+         
+         
+         var liveHeadPosition = HeadPosition.left
+         let yawValue = Int(metadataObject.yawAngle)
+         
+         var yawAngle = 0
+         var yawAngleText = ""
+         if yawValue < 180{
+         liveHeadPosition = HeadPosition.left
+         yawAngle = yawValue
+         yawAngleText = "\(yawAngle)"
+         }
+         else {
+         liveHeadPosition = HeadPosition.right
+         yawAngle = 360 - Int(metadataObject.yawAngle)
+         yawAngleText = "\(-yawAngle)"
+         }
+         
+         //self.avFaceYaw.text = "yaw: \(yawAngleText)"
+         
+         if self.initialHeadPosition == liveHeadPosition && yawAngle > self.yawAngle {
+         /*self.isCatchPhoto = true
+          self.checkFace = true
+          self.captureSession.stopRunning()
+          
+          (self.headPoseView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor = self.activeColorHeadPose.cgColor
+          self.headPoseView.layoutIfNeeded()
+          (self.cutoutSelfieView.layer.sublayers?.first as? CAShapeLayer)?.strokeColor = self.activeColorHeadPose.cgColor
+          self.cutoutSelfieView.layoutIfNeeded()
+          
+          var selfieImage = UIImage(cgImage: self.inputCGImage)
+          //var autoCropped_selfieImage = self.capturedFace
+          var base64_selfieImage =  selfieImage.toBase64(format: .jpeg(50))
+          //var base64_autoCropped_selfieImage = autoCropped_selfieImage?.toBase64(format: .jpeg(50))
+          self.delegate?.didAutonomousFacePredictionHeadPoseSuccess(self,image: selfieImage,imageBase64: base64_selfieImage!, direction: liveHeadPosition)*/
+         }
+         else{
+         self.checkFace = false
+         }
+         self.updateScanArea()
+         /*sağ 310
+          sol 50
+          let directionStr = "left"
+          let yawValueAngle = Int(metadataObject.yawAngle) - 360
+          if yawValue > 0 {
+          directionStr =
+          }*/
+         
+         //self.avFaceYaw.text = "yaw: \(yawValue)"
+         }
+         }*/
         
     }
     

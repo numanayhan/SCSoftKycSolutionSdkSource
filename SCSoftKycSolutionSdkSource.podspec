@@ -1,7 +1,7 @@
 Pod::Spec.new do |spec|
 
   spec.name         = "SCSoftKycSolutionSdkSource"
-  spec.version      = "0.2.4"
+  spec.version      = "0.2.5"
   spec.summary      = "SCSoftKycSolutionSdkSource summary"
 
   spec.homepage     = "https://github.com/samiozakyol/SCSoftKycSolutionSdkSource"
